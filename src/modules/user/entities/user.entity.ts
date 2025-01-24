@@ -1,7 +1,7 @@
 import { Col } from "reactstrap";
 import { BaseEntity } from "src/common/abstracts/base.entity";
 import { EntitiName } from "src/common/enums/entity.enum";
-import { Column, Entity } from "typeorm";
+import { Column, CreateDateColumn, Entity, UpdateDateColumn } from "typeorm";
 //we create a func in common/enums and define user and use it here in @entity.
 //BaseEntity is a custome function we created.
 @Entity(EntitiName.User)
@@ -12,4 +12,10 @@ export class UserEntity extends BaseEntity{//we dont use id because in baseEntit
     phone : string;
     @Column({unique : true , nullable : true})
     email : string;
+    @Column({nullable : true})
+    password : string
+    @CreateDateColumn()
+    created_at : Date
+    @UpdateDateColumn()
+    updated_at : Date
 }
