@@ -1,3 +1,4 @@
 export enum EntitiName {
-    User = 'user'
+    User = 'user' ,
+    Profile = 'profile'
 }
