@@ -9,6 +9,11 @@ import { Repository } from 'typeorm';
 import { ProfileEntity } from '../user/entities/profile.entity';
 import { OtpEntity } from '../user/entities/otp.entity';
 import { randomInt } from 'crypto';
+import { JwtService } from '@nestjs/jwt';
+import { TokenService } from './tokens.service';
+import { Response } from 'express';
+import { CookieKeys } from 'src/common/enums/cookie.enum';
+import { AuthResponse } from './types/response';
 
 @Injectable()
 export class AuthService {
@@ -16,15 +21,18 @@ export class AuthService {
       @InjectRepository(UserEntity) private userRepository:Repository<UserEntity>,
       @InjectRepository(ProfileEntity) private profileRepository:Repository<ProfileEntity> ,
       @InjectRepository(OtpEntity) private otpRepository:Repository<OtpEntity> ,
-
+      private tokenService : TokenService
     ){}
-      UserExistence(authDto : AuthDto){
+      async UserExistence(authDto : AuthDto , res : Response){
         const {method , type , username} = authDto;
+        let result : AuthResponse
         switch (type) {
           case AuthType.Login:
-            return this.login(method , username);
+            result = await this.login(method , username);
+            return this.sendResponse(res , result)
           case AuthType.Register:
-            return this.register(method , username);
+            result = await this.register(method , username);
+              return this.sendResponse(res , result)  
           default:
             throw new UnauthorizedException('')
         }
@@ -34,7 +42,9 @@ export class AuthService {
         let user : UserEntity = await this.checkExistUser(method , validUsername)
           if(!user) throw new UnauthorizedException('cant found any account')
         const otp = await this.saveOtp(user.id)
+        const token = this.tokenService.createOtpToken({userId : user.id})
         return {
+          token ,
           code : otp.code 
         }
       }
@@ -50,9 +60,20 @@ export class AuthService {
         user.username = `m_${user.id}` //create unique userID for users that register their account.
         await this.userRepository.save(user);
         const otp = await this.saveOtp(user.id);
+        const token = this.tokenService.createOtpToken({userId : user.id})
         return {
+          token ,
           code : otp.code 
         }
+      }
+      //now we set cookie//in real project we choose weird and unrecognation for cookie.
+      async sendResponse(res : Response , result : AuthResponse) {
+        const {token , code} = result
+        res.cookie(CookieKeys.OTP , token , {httpOnly : true}) 
+        res.json({
+          message : 'one time password send successfully' ,
+          code 
+        })
       }
       async checkOtp(){}
       async saveOtp(userId : number){
