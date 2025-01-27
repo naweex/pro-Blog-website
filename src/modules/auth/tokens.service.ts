@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { CookiePayload } from "./types/payload";
 
@@ -12,5 +12,12 @@ export class TokenService {
             expiresIn : 60 * 2
         });
         return token;
+    }
+    verifyOtpToken(token : string) : CookiePayload {
+        try {
+            
+        } catch (error) {
+            throw new UnauthorizedException('please try again')
+        }
     }
     }
