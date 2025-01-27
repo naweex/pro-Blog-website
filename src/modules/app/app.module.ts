@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { TypeOrmConfig } from 'src/config/typeorm.config';
+import { UserModule } from '../user/user.module';
+import { AuthModule } from '../auth/auth.module';
 
 
 
@@ -12,7 +14,9 @@ import { TypeOrmConfig } from 'src/config/typeorm.config';
       isGlobal : true ,
       envFilePath : join(process.cwd() , '.env') //we recognation .env to proccess.cwd and join them with each other.
     }),
-    TypeOrmModule.forRoot(TypeOrmConfig())
+    TypeOrmModule.forRoot(TypeOrmConfig()),
+    AuthModule ,
+    UserModule
   ],
   controllers: [],
   providers: [],
