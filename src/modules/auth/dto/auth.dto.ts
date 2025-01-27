@@ -15,5 +15,11 @@ export class AuthDto {
     @IsEnum(AuthMethod)
     method : AuthMethod;
 }
+export class CheckOtpDto {
+    @ApiProperty()//with this decorator we can show variable in below in swagger.
+    @IsString()
+    @Length(5 , 5)
+    code : string;
+}
 
 //enum means specific type or sum ,when our type is enum our variable always give specific amount.
