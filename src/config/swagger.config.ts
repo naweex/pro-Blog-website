@@ -7,11 +7,12 @@ export function swaggerConfigInit(app : INestApplication) : void {
     .setTitle('Blog website')
     .setDescription('Blog website Back-End')
     .setVersion('v0.0.1')
-    .addBearerAuth(swaggerAuthConfig())
+    .addBearerAuth(swaggerAuthConfig() , 'Authorization')
     .build()
     const swaggerDocument = SwaggerModule.createDocument(app , document);
     SwaggerModule.setup('/swagger' ,app , swaggerDocument)
 }
+//for set header
 function swaggerAuthConfig() : SecuritySchemeObject {
     return {
         type : 'http' ,
