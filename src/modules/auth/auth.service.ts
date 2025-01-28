@@ -110,7 +110,17 @@ export class AuthService {
       async checkOtp(code : string){
         const token = this.request.cookies?.[CookieKeys.OTP];
         if(!token) throw new UnauthorizedException('code is expire please try again')
-          return token;
+        const {userId} = this.tokenService.verifyOtpToken(token);
+        const otp = await this.otpRepository.findOneBy({userId});
+        if(!otp) throw new UnauthorizedException('please try agin!');
+        const now = new Date()
+        if(otp.expiresIn < now) throw new UnauthorizedException('code is expire!')
+        if(otp.code !== code) throw new UnauthorizedException('please try agin!')
+        const accessToken = this.tokenService.createAccessToken({userId})
+        return {
+              message : 'successfully login' ,
+              accessToken
+        }
       }
       async checkExistUser(method : AuthMethod , username : string){
         let user : UserEntity;
@@ -124,6 +134,12 @@ export class AuthService {
           throw new BadRequestException('login data not valid')
         }
         return user;
+      }
+      async validateAccessToken(token : string){
+        const {userId} = this.tokenService.verifyAccessToken(token)
+        const user = await this.userRepository.findOneBy({id : userId})
+        if(!user) throw new UnauthorizedException('please try login again')
+          return user;
       }
       usernameValidator(method : AuthMethod , username : string){
         switch (method) {
