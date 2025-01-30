@@ -1,4 +1,6 @@
 export enum EntitiName {
     User = 'user' ,
-    Profile = 'profile'
+    Profile = 'profile' ,
+    Otp = 'otp' ,
+    Category = 'category'
 }
