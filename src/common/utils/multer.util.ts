@@ -1,6 +1,8 @@
+import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 import { mkdirSync } from "fs";
 import { extname, join } from "path";
+
 export type CallbackDestination = (error : Error , destination : string) => void
 export type CallbackFilename = (error : Error , filename : string) => void
 export function multerDestination(fieldName : string) {
@@ -12,8 +14,13 @@ export function multerDestination(fieldName : string) {
 }
 //we base on format and new date create new name for new uploaded file.
 export function multerFileName(req : Request , file : Express.Multer.File , callback : CallbackFilename):void{
-        const ext = extname(file.originalname); //we give original name of file/Name of the file on the uploader's computer.
-        const filename = `${Date.now()}.${ext}`
-        callback(null , filename)
+        const ext = extname(file.originalname).toLowerCase(); //we give original name of file/Name of the file on the uploader's computer.
+        if(!['.png' , '.jpg' , '.jpeg'].includes(ext)){
+            callback(new BadRequestException('image format should jpeg,jpg or png') , null)
+        }else{
+            const filename = `${Date.now()}${ext}`
+            callback(null , filename)
+        }   
     }
+    
 
