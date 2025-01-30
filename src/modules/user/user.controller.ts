@@ -1,18 +1,42 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseInterceptors, UploadedFiles, ParseFilePipe, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ProfileDto } from './dto/profile.dto';
+import { SwaggerConsumes } from 'src/common/enums/swagger-consumes.enum';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { multerDestination, multerFileName } from 'src/common/utils/multer.util';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
 @Controller('user')
 @ApiTags('User')
+@ApiBearerAuth('Authorization')//for add authentication option in swagger.and should import this in user module.
+@UseGuards(AuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  @Put('/profile')
+  //we use MultipartData because we upload file(background and profile image) in our profile.***
+  @ApiConsumes(SwaggerConsumes.MultipartData)
+  @UseInterceptors(FileFieldsInterceptor([
+  {name : 'image_profile' , maxCount : 1} ,
+  {name : 'backGround_profile' , maxCount : 1}
+] ,{
+  storage : diskStorage({
+    destination : multerDestination('user-profile') ,//put 2 file(bg-image,pro-image) in user-profile
+    filename : multerFileName,
+  })
+}
+))
+  changeProfile(
+    @UploadedFiles(new ParseFilePipe({//parsefilepipe for upload file filtering.
+      fileIsRequired : false ,
+      validators : []
+    })) files : any ,
+    @Body() profileDto : ProfileDto){
+    return this.userService.changeProfile(files , profileDto)
   }
+    
+
 
   @Get()
   findAll() {
@@ -24,10 +48,6 @@ export class UserController {
     return this.userService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
-  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
