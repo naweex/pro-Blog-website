@@ -11,6 +11,8 @@ export class OtpEntity extends BaseEntity {
     expiresIn : Date
     @Column()
     userId : number
+    @Column({nullable : true})
+    method : string; //method : username , phone , email
     @OneToOne(() => UserEntity , user => user.otp , {onDelete : 'CASCADE'}) //every user had one otp => one to one relation.
     user : UserEntity
 }
