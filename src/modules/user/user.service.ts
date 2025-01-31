@@ -1,4 +1,4 @@
-import { Inject, Injectable, Scope } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, Scope } from '@nestjs/common';
 import { ProfileDto } from './dto/profile.dto';
 import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
@@ -9,13 +9,17 @@ import { Request } from 'express';
 import { isDate } from 'class-validator';
 import { Gender } from './enums/gender.enum';
 import { ProfileImage } from './types/files';
+import { AuthService } from '../auth/auth.service';
+import { TokenService } from '../auth/tokens.service';
 
 @Injectable({scope : Scope.REQUEST})//we need requests to know which user send request to modify their profile.
 export class UserService {
   constructor(
     @InjectRepository(UserEntity) private userRepository : Repository<UserEntity> ,
     @InjectRepository(ProfileEntity) private profileRepository : Repository<ProfileEntity> ,
-    @Inject(REQUEST) private request : Request
+    @Inject(REQUEST) private request : Request ,
+    private authService : AuthService ,
+    private tokenService : TokenService ,
   ){}
   async changeProfile(files : ProfileImage , profileDto: ProfileDto) {
     if(files?.image_profile?.length > 0 ){
@@ -70,17 +74,19 @@ export class UserService {
         relations : ['profile']
       })
   }
-
-  findAll() {
-    return `This action returns all user`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  //first of all we take id into user request.
+  //after that we conform and check email and id with finding email.
+async changeEmail(email : string) {
+  const {id} = this.request.user;
+  const user = await this.userRepository.findOneBy({email})
+  if(user && user?.id !== id){
+     throw new ConflictException('email used by another person')
+  }else if(user && user.id == id){//if email exactly that existed email we didnt change anything and remain.
+      return {
+        message : 'updated successfully' //we dont update or modify just show update message because the email not changed.
+      }
+    }
+    user.new_email = email
+    const otp = await this.authService.saveOtp(user.id)
   }
 }
