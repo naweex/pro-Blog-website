@@ -57,12 +57,14 @@ export class AuthService {
           if(user) throw new ConflictException('this account already exist')
           if(method === AuthMethod.Username) throw new BadRequestException('invalid data for register')
         user = this.userRepository.create({
-          [method] : username 
+          [method] : username ,
         })
         user = await this.userRepository.save(user);
         user.username = `m_${user.id}` //create unique userID for users that register their account.
         await this.userRepository.save(user);
         const otp = await this.saveOtp(user.id);
+        otp.method = method;//to insure the otp for username or phone or email
+        await this.otpRepository.save(otp)
         const token = this.tokenService.createOtpToken({userId : user.id})
         return {
           token ,
@@ -117,6 +119,15 @@ export class AuthService {
         if(otp.expiresIn < now) throw new UnauthorizedException('code is expire!')
         if(otp.code !== code) throw new UnauthorizedException('please try agin!')
         const accessToken = this.tokenService.createAccessToken({userId})
+        if(otp.method === AuthMethod.Email){
+            await this.userRepository.update({id : userId} , {
+              verify_email : true
+            })
+        }else if(otp.method === AuthMethod.Phone){
+          await this.userRepository.update({id : userId} , {
+            verify_phone : true
+          })
+        }
         return {
               message : 'successfully login' ,
               accessToken
