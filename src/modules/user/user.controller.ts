@@ -7,6 +7,8 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { multerDestination, multerFileName } from 'src/common/utils/multer.util';
 import { AuthGuard } from '../auth/guards/auth.guard';
+import { ProfileImage } from './types/files';
+import { uploadedOptionalFiles } from 'src/common/decorators/upload-file.decorator';
 
 @Controller('user')
 @ApiTags('User')
@@ -28,14 +30,14 @@ export class UserController {
 }
 ))
   changeProfile(
-    @UploadedFiles(new ParseFilePipe({//parsefilepipe for upload file filtering.
-      fileIsRequired : false ,
-      validators : []
-    })) files : any ,
+    @uploadedOptionalFiles() files : ProfileImage ,//uploadedOptionalFiles is a costum decorator we made it.
     @Body() profileDto : ProfileDto){
     return this.userService.changeProfile(files , profileDto)
   }
-    
+    @Get('/profile')
+    profile(){
+      return this.userService.profile()
+    }
 
 
   @Get()
