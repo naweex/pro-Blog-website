@@ -22,7 +22,7 @@ export class AuthController {
     return this.authService.checkOtp(checkOtpDto.code)
   }
   @Get('check-login')
-  @ApiBearerAuth('Authorization')
+  @ApiBearerAuth('Authorization')//for add authentication option in swagger in check-login.
   @UseGuards(AuthGuard)
   checkLogin(@Req() req : Request){
     return req.user;
