@@ -45,7 +45,7 @@ export class AuthService {
         const validUsername = this.usernameValidator(method , username);
         let user : UserEntity = await this.checkExistUser(method , validUsername)
           if(!user) throw new UnauthorizedException('cant found any account')
-        const otp = await this.saveOtp(user.id)
+        const otp = await this.saveOtp(user.id , method)
         const token = this.tokenService.createOtpToken({userId : user.id})
         return {
           token ,
@@ -63,9 +63,7 @@ export class AuthService {
         user = await this.userRepository.save(user);
         user.username = `m_${user.id}` //create unique userID for users that register their account.
         await this.userRepository.save(user);
-        const otp = await this.saveOtp(user.id);
-        otp.method = method;//to insure the otp for username or phone or email
-        await this.otpRepository.save(otp)
+        const otp = await this.saveOtp(user.id , method);
         const token = this.tokenService.createOtpToken({userId : user.id})
         return {
           token ,
@@ -81,7 +79,7 @@ export class AuthService {
           code 
         })
       }
-      async saveOtp(userId : number){
+      async saveOtp(userId : number , method : AuthMethod){
         const code = randomInt(10000 , 99999).toString();
         const expiresIn = new Date(Date.now() + (1000 * 60 * 2))
         let otp = await this.otpRepository.findOneBy({userId});
@@ -90,11 +88,13 @@ export class AuthService {
           existOtp = true
           otp.code = code;
           otp.expiresIn = expiresIn;
+          otp.method = method;
         }else {
             otp = this.otpRepository.create({
                 code ,
                 expiresIn ,
-                userId
+                userId ,
+                method
             })
         }
         otp = await this.otpRepository.save(otp)
