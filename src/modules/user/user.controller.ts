@@ -12,6 +12,7 @@ import { uploadedOptionalFiles } from 'src/common/decorators/upload-file.decorat
 import { Response } from 'express';
 import { CookieKeys } from 'src/common/enums/cookie.enum';
 import { CookiesOptionToken } from 'src/common/utils/cookie.util';
+import { CheckOtpDto } from '../auth/dto/auth.dto';
 
 @Controller('user')
 @ApiTags('User')
@@ -51,4 +52,8 @@ export class UserController {
         message : 'otp send successfully'
     })
   }    
+  @Post('/verify-email-otp')
+  async verifyEmail(@Body() otoDto : CheckOtpDto){
+    return this.userService.verifyEmail(otoDto.code)
+}   
 }
