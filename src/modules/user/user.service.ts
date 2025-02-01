@@ -19,6 +19,7 @@ import { AuthService } from '../auth/auth.service';
 import { TokenService } from '../auth/tokens.service';
 import { OtpEntity } from './entities/otp.entity';
 import { CookieKeys } from 'src/common/enums/cookie.enum';
+import { AuthMethod } from '../auth/enums/method.enum';
 
 @Injectable({ scope: Scope.REQUEST }) //we need requests to know which user send request to modify their profile.
 export class UserService {
@@ -111,8 +112,8 @@ export class UserService {
         message: 'updated successfully', //we dont update or modify just show update message because the email not changed.
       };
     }
-    user.new_email = email;
-    const otp = await this.authService.saveOtp(user.id);
+    await this.userRepository.update({id} , {new_email : email})
+    const otp = await this.authService.saveOtp(id , AuthMethod.Email);
     const token = this.tokenService.createEmailToken({ email });
     return {
       code: otp.code,
@@ -125,8 +126,21 @@ export class UserService {
     if (!token)
       throw new BadRequestException('code is expire please try again');
     const {email} = this.tokenService.verifyEmailToken(token);
+    if(email !== new_email) {
+      throw new BadRequestException('somthing wrong')
+    }
     const otp = await this.checkOtp(userId, code);
-    if(email !== new_email) throw new BadRequestException('somthing wrong')
+    if(otp.method !== AuthMethod.Email) {
+      throw new BadRequestException('somthing wrong')
+    }
+    await this.userRepository.update({id : userId} , {//now we update email of user and change their old email to new email.
+      email ,
+      verify_email : true ,
+      new_email : null
+    });
+    return {
+      message : 'email updated successfully' ,
+    }
   }
 
   async checkOtp(userId: number, code: string) {
