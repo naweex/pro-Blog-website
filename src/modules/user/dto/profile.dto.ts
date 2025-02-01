@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
-import { IsEmail, IsEnum, IsMobilePhone, IsOptional, IsPhoneNumber, Length } from "class-validator"
+import { IsEmail, IsEnum, IsMobilePhone, IsOptional, IsString, Length } from "class-validator"
 import { Gender } from "../enums/gender.enum"
 //in this file every fields in profile are optional and user can change their>>>
 //so we use apipropertyoptional.
@@ -37,4 +37,10 @@ export class ChangePhoneDto {
         @ApiProperty()
         @IsMobilePhone('fa-IR' , {} , {message : 'mobile number format is invalid'})
         phone : string
+}
+export class ChangeUsernameDto {
+          @ApiProperty()//with this decorator we can show variable in below in swagger.
+          @IsString()
+          @Length(3 , 100)
+          username : string;
 }
