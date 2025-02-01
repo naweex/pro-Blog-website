@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseInterceptors, UploadedFiles, ParseFilePipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseInterceptors, UploadedFiles, ParseFilePipe, UseGuards, Res } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { ProfileDto } from './dto/profile.dto';
+import { ChangeEmailDto, ProfileDto } from './dto/profile.dto';
 import { SwaggerConsumes } from 'src/common/enums/swagger-consumes.enum';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -9,6 +9,9 @@ import { multerDestination, multerFileName } from 'src/common/utils/multer.util'
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { ProfileImage } from './types/files';
 import { uploadedOptionalFiles } from 'src/common/decorators/upload-file.decorator';
+import { Response } from 'express';
+import { CookieKeys } from 'src/common/enums/cookie.enum';
+import { CookiesOptionToken } from 'src/common/utils/cookie.util';
 
 @Controller('user')
 @ApiTags('User')
@@ -38,21 +41,14 @@ export class UserController {
     profile(){
       return this.userService.profile()
     }
-
-
-  @Get()
-  findAll() {
-    return this.userService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
-  }
-
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
-  }
+    @Patch('/change-email')
+    async changeEmail(@Body() emailDto : ChangeEmailDto , @Res() res : Response){
+      const {code,token,message} = await this.userService.changeEmail(emailDto.email)
+      if(message) return res.json({message})
+      res.cookie(CookieKeys.EmailOTP , token , CookiesOptionToken()) 
+      res.json({
+        code ,
+        message : 'otp send successfully'
+    })
+  }    
 }
