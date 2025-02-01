@@ -142,7 +142,63 @@ export class UserService {
       message : 'email updated successfully' ,
     }
   }
-
+  async changePhone(phone: string) {
+    const { id } = this.request.user;
+    const user = await this.userRepository.findOneBy({ phone });//search base on phone.
+    if (user && user?.id !== id) {
+      throw new ConflictException('phone number used by another user');
+    } else if (user && user.id == id) {
+      //if email exactly that existed email we didnt change anything and remain.
+      return {
+        message: 'updated successfully', //we dont update or modify just show update message because the email not changed.
+      };
+    }
+    await this.userRepository.update({id} , {new_phone : phone})
+    const otp = await this.authService.saveOtp(id , AuthMethod.Phone);
+    const token = this.tokenService.createPhoneToken({ phone });
+    return {
+      code: otp.code,
+      token,
+    };
+  }
+  async verifyPhone(code: string) {
+    const { id: userId , new_phone } = this.request.user;
+    const token = this.request.cookies?.[CookieKeys.PhoneOTP];
+    if (!token)
+      throw new BadRequestException('code is expire please try again');
+    const {phone} = this.tokenService.verifyPhoneToken(token);
+    if(phone !== new_phone) {
+      throw new BadRequestException('somthing wrong')
+    }
+    const otp = await this.checkOtp(userId, code);
+    if(otp.method !== AuthMethod.Phone) {
+      throw new BadRequestException('somthing wrong')
+    }
+    await this.userRepository.update({id : userId} , {//now we update email of user and change their old email to new email.
+      phone ,
+      verify_phone : true ,
+      new_phone : null
+    });
+    return {
+      message : 'phone updated successfully' ,
+    }
+  }
+  async changeUsername(username: string) {
+    const { id } = this.request.user;
+    const user = await this.userRepository.findOneBy({ username });//search base on username.
+    if (user && user?.id !== id) {
+      throw new ConflictException('username used by another user');
+    } else if (user && user.id == id) {
+      //if email exactly that existed email we didnt change anything and remain.
+      return {
+        message: 'updated successfully', //we dont update or modify just show update message because the email not changed.
+      };
+    }
+    await this.userRepository.update({id} , {username})
+    return {
+      message: 'updated successfully'
+    }
+  }
   async checkOtp(userId: number, code: string) {
     const otp = await this.otpRepository.findOneBy({ userId });
     if (!otp) throw new BadRequestException('not found please try agin!');
