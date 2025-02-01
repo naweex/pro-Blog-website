@@ -15,6 +15,7 @@ import { Request, Response } from 'express';
 import { CookieKeys } from 'src/common/enums/cookie.enum';
 import { AuthResponse } from './types/response';
 import { REQUEST } from '@nestjs/core';
+import { CookiesOptionToken } from 'src/common/utils/cookie.util';
 
 @Injectable({scope : Scope.REQUEST})//for access request we use scope
 export class AuthService {
@@ -74,12 +75,7 @@ export class AuthService {
       //now we set cookie//in real project we choose weird and unrecognation for cookie.
       async sendResponse(res : Response , result : AuthResponse) {
         const {token , code} = result
-        res.cookie(CookieKeys.OTP , token , {
-        httpOnly : true ,
-        expires : new Date(Date.now() + (1000 * 60 * 2))
-      
-      
-      }) 
+        res.cookie(CookieKeys.OTP , token , CookiesOptionToken()) 
         res.json({
           message : 'one time password send successfully' ,
           code 
