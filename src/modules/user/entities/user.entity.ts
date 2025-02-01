@@ -16,6 +16,8 @@ export class UserEntity extends BaseEntity{//we dont use id because in baseEntit
     email : string;
     @Column({nullable : true})
     new_email : string;
+    @Column({nullable : true})
+    new_phone : string;
     @Column({nullable : true , default : false})
     verify_email : boolean;
     @Column({nullable : true , default : false})
