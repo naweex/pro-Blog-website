@@ -6,6 +6,7 @@ import { CreateBlogDto } from './dto/blog.dto';
 import { BlogStatus } from './enum/status.enum';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
+import { randomId } from 'src/common/utils/functions.utils';
 
 @Injectable({scope : Scope.REQUEST})
 
@@ -21,6 +22,11 @@ export class BlogService {
         let {title , slug , content , description , image , time_for_study} = blogDto;
         let slugData = slug ?? title;                                        //slugify dont soppurt persian and arabic we should use regexp.**
         slug = slugData?.replace(/[ًٌٍَُِّ\.\+\-_)(*&%$^#@!~'";:?><`ء)]+/g , '')?.replace(/[\s]+/g,'-')//regexp = where exist 1 or more than one space replace them with "-".
+        const isExist = await this.checkBlogBySlug(slug)
+        if(isExist){
+            slug+= `-${randomId()}` //if user create new blog and the slug of blog already exist__
+                                    //patch a randome id to end of the new slugs blog.
+        }
         const blog = this.blogRepository.create({
             slug ,
             title ,
@@ -35,5 +41,10 @@ export class BlogService {
         return {
             message : 'created successfully'
         }
+    }
+    async checkBlogBySlug(slug : string) { //if blog exist with the same name turn to false 
+        const blog = await this.blogRepository.findOneBy({slug})
+        return !!blog; //!! this exclamation mark turn value to boolean.
+        //if blog exist it should be true if dont exist false.
     }
 }
