@@ -11,7 +11,7 @@ export class CreateBlogDto {
     @ApiProperty()
     @IsNotEmpty()
     @IsNumber()
-    time_for_study: number;
+    time_for_study: string;
     @ApiPropertyOptional()
     image : string;
     @ApiProperty()
