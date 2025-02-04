@@ -17,6 +17,10 @@ export class BlogEntity extends BaseEntity {//in base entity only id exist.
     content : string; //content and users story(blog)main blog**
     @Column({nullable : true})//nullable : true it meant the parameter optional and it could be null.
     image : string;//image of blog,,every blogs that user create can have image that is optional.
+    @Column({unique : true})
+    slug : string;//when user open a blog in the endpoint(in url) show the brief title of blog/slug is important for seo and give us preety url.
+    @Column()
+    time_for_study : string;//every blog had time study that define how much time need to read blog.
     @Column({default : BlogStatus.Draft}) //by default in first step when user create blog it is draft.
     status : string
     @Column()
