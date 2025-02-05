@@ -23,8 +23,8 @@ export class CreateBlogDto {
     @Length(100)
     content : string;
     @ApiProperty({type : String , isArray : true})
-    @IsArray()
-    categories : string[]
+    //@IsArray()
+    categories : string[] | string
 
 }
 //title and description is very important for seo,always should exist in blogs and shouldnt be optional.
@@ -32,5 +32,6 @@ export class CreateBlogDto {
 //slugify is a npm package that replace space with somthing we want.
 
 export class FilterBlogDto {
-    search : string
+    category : string;
+    search : string;
 }
