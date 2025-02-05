@@ -7,6 +7,8 @@ import { BlogStatus } from './enum/status.enum';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { randomId } from 'src/common/utils/functions.utils';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { paginationGenerator, paginationSolver } from 'src/common/utils/pagination.util';
 
 @Injectable({scope : Scope.REQUEST})
 
@@ -46,5 +48,32 @@ export class BlogService {
         const blog = await this.blogRepository.findOneBy({slug})
         return !!blog; //!! this exclamation mark turn value to boolean.
         //if blog exist it should be true if dont exist false.
+    }
+    async myBlog(){
+        const {id} = this.request.user;
+        return this.blogRepository.find({
+            where : {
+                authorId : id
+            },
+            order : {
+                id : 'DESC' //order and give blogs to author from last blog until first blog.
+            }
+        })
+    }
+    //blog list is list of all blogs for main page of website.
+    async blogList(paginationDto: PaginationDto){
+        const {limit , page , skip} = paginationSolver(paginationDto)
+        const [blogs , count] =  await this.blogRepository.findAndCount({
+            where : {},
+            order : {
+                id : 'DESC' //order and give blogs to author from last blog until first blog.
+            },
+            skip ,
+            take : limit
+        });
+        return {
+            pagination : paginationGenerator(count , page , limit) ,
+            blogs
+        }
     }
 }
