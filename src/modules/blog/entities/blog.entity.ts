@@ -6,6 +6,7 @@ import { UserEntity } from "src/modules/user/entities/user.entity";
 import { BlogLikesEntity } from "./like.entity";
 import { BlogBookmarkEntity } from "./bookmark.entity";
 import { BlogCommentEntity } from "./comment.entity";
+import { BlogCategoryEntity } from "./blog-category.entity";
 
 @Entity(EntitiName.Blog)
 export class BlogEntity extends BaseEntity {//in base entity only id exist.
@@ -29,6 +30,8 @@ export class BlogEntity extends BaseEntity {//in base entity only id exist.
     author : UserEntity;
     @OneToMany(() => BlogLikesEntity , like => like.blog)
     likes : BlogLikesEntity[] 
+    @OneToMany(() => BlogCategoryEntity , category => category.blog)
+    categories : BlogCategoryEntity[] 
     @OneToMany(() => BlogBookmarkEntity , bookmark => bookmark.blog)
     bookmarks : BlogBookmarkEntity[] //a blog can bookmarked by several users.
     @OneToMany(() => BlogCommentEntity , comment => comment.blog)
