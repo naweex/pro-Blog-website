@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Scope } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { BlogEntity } from './entities/blog.entity';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -130,6 +130,14 @@ export class BlogService {
         return {
             pagination : paginationGenerator(count , page , limit) ,
             blogs
+        }
+    }
+    async delete(id : number){
+        const blog = await this.blogRepository.findOneBy({id})
+        if(!blog) throw new NotFoundException('not found any blog')
+        await this.blogRepository.delete({id})
+        return {
+            message : 'blog deleted successfully'
         }
     }
 }
