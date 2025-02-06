@@ -9,7 +9,7 @@ import { BlogCommentEntity } from "./comment.entity";
 import { BlogCategoryEntity } from "./blog-category.entity";
 
 @Entity(EntitiName.Blog)
-export class BlogEntity extends BaseEntity {//in base entity only id exist.
+export class BlogEntity extends BaseEntity {//in base entity only (id) exist.
     @Column()
     title : string;
     @Column()
