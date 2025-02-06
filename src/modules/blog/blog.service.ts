@@ -85,23 +85,23 @@ export class BlogService {
     //blog list is list of all blogs for main page of website.
     async blogList(paginationDto: PaginationDto , filterDto : FilterBlogDto){
         const {limit , page , skip} = paginationSolver(paginationDto);
-        const {category , search} = filterDto;
+        let {category , search} = filterDto;
         let where = ''
         if(category){
-            where['categories'] = {//go to categories and return every blogs that category title similar to category.
-                category : {  
-                    title : category
-                }
-            }
+            category = category.toLowerCase();
+            if(where.length > 0) where += ' AND '
+            where += 'category.title = LOWER(:category)'
         }
         if(search) {
-            
+            if(where.length > 0) where += ' AND '
+            search = `%${search}%` //because we use ILIKE dont need use tolowercase.**
+            where += 'CONCAT(blog.title , blog.description , blog.content) ILIKE :search' //concat stick a few string together.
         }
         const [blogs , count] =  await this.blogRepository.createQueryBuilder(EntitiName.Blog)
-        .leftJoin('blog.categories' , 'categories')//second parameter is alias(nickname for firs parameter)
-        .leftJoin('categories.category' , 'category')
+        .leftJoin('blog.categories' , 'categories')//second parameter is alias(nickname for first parameter)
+        .leftJoin('categories.category' , 'category')//second parameter is alias(nickname for first parameter)
         .addSelect(['categories.id' , 'category.title'])
-        .where('')
+        .where(where , {category , search})
         .orderBy('blog.id' , 'DESC')
         .skip(skip)
         .take(limit)
