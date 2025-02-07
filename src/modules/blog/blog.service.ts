@@ -164,24 +164,28 @@ export class BlogService {
             if(isExist && isExist.id !== id){
                 slug+= `-${randomId()}` 
             }
+            blog.slug = slug;
         }
-        if(title) blog.title = title;
-        if(title) blog.title = title;
-        if(title) blog.title = title;
-        if(title) blog.title = title;
-        blog = await this.blogRepository.save(blog);
+        if(description) blog.description = description;//if description exist update it.
+        if(content) blog.content = content;//if content exist update it.
+        if(image) blog.image = image;
+        if(time_for_study) blog.time_for_study = time_for_study;
+        await this.blogRepository.save(blog);
         for (const categoryTitle of categories){
             let category = await this.categoryService.findOneByTitle(categoryTitle)
             if(!category) {
                 category = await this.categoryService.insertByTitle(categoryTitle)
             }
-            await this.blogCategoryRepository.insert({
+            const checkCategoryExistInBlog = await this.blogCategoryRepository.findOneBy({categoryId : category.id , blogId : blog.id})
+            if(!checkCategoryExistInBlog) {
+                await this.blogCategoryRepository.insert({
                 blogId : blog.id ,
                 categoryId : category.id
             })
         }
+    }
         return {
-            message : 'created successfully'
+            message : 'updated successfully'
         }
     }
 }
