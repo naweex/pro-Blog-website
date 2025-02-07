@@ -14,13 +14,15 @@ import { CategoryService } from '../category/category.service';
 import { BlogCategoryEntity } from './entities/blog-category.entity';
 import { EntitiName } from 'src/common/enums/entity.enum';
 import { take } from 'rxjs';
+import { BlogLikesEntity } from './entities/like.entity';
+import { PublicMessage } from 'src/common/enums/message.enum';
 
 @Injectable({scope : Scope.REQUEST})
-
 export class BlogService {
     constructor(
         @InjectRepository(BlogEntity) private blogRepository : Repository<BlogEntity> ,
         @InjectRepository(BlogCategoryEntity) private blogCategoryRepository : Repository<BlogCategoryEntity> ,
+        @InjectRepository(BlogLikesEntity) private blogLikeRepository : Repository<BlogLikesEntity> ,
         @Inject(REQUEST) private request : Request ,//LAST Request belong to express. 
         private categoryService : CategoryService
     ){}
@@ -186,6 +188,23 @@ export class BlogService {
         }
         return {
             message : 'updated successfully'
+        }
+    }
+    async likeToggle(blogId : number){
+        const {id : userId} = this.request.user; //for take id of user in request.
+        const blog = await this.checkExistBlogById(blogId)
+        const isLiked = await this.blogLikeRepository.findOneBy({userId , blogId});
+        let message = PublicMessage.Like 
+        if(isLiked) {
+            await this.blogLikeRepository.delete({id : isLiked.id});
+            message = PublicMessage.DisLike
+        }else {
+            await this.blogLikeRepository.insert({
+                blogId , userId
+            })
+        }
+        return {
+            message
         }
     }
 }
