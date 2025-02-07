@@ -171,19 +171,19 @@ export class BlogService {
         if(image) blog.image = image;
         if(time_for_study) blog.time_for_study = time_for_study;
         await this.blogRepository.save(blog);
+        if(categories && isArray(categories) && categories.length > 0){
+            await this.blogCategoryRepository.delete({blogId : blog.id})
+        }
         for (const categoryTitle of categories){
             let category = await this.categoryService.findOneByTitle(categoryTitle)
             if(!category) {
                 category = await this.categoryService.insertByTitle(categoryTitle)
             }
-            const checkCategoryExistInBlog = await this.blogCategoryRepository.findOneBy({categoryId : category.id , blogId : blog.id})
-            if(!checkCategoryExistInBlog) {
                 await this.blogCategoryRepository.insert({
                 blogId : blog.id ,
                 categoryId : category.id
-            })
+            });
         }
-    }
         return {
             message : 'updated successfully'
         }
