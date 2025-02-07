@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { IsArray, IsNotEmpty, IsNumberString, Length } from "class-validator";
 
 export class CreateBlogDto {
@@ -25,12 +25,11 @@ export class CreateBlogDto {
     @ApiProperty({type : String , isArray : true})
     //@IsArray()
     categories : string[] | string
-
 }
 //title and description is very important for seo,always should exist in blogs and shouldnt be optional.
 //seo : key word , meta description , meta title ,
 //slugify is a npm package that replace space with somthing we want.
-
+export class UpdateBlogDto extends PartialType(CreateBlogDto) {}//take all createblogdto methods and return all of them optional.
 export class FilterBlogDto {
     category : string;
     search : string;
