@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException, Scope } fro
 import { BlogEntity } from './entities/blog.entity';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateBlogDto, FilterBlogDto } from './dto/blog.dto';
+import { CreateBlogDto, FilterBlogDto, UpdateBlogDto } from './dto/blog.dto';
 import { BlogStatus } from './enum/status.enum';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
@@ -68,8 +68,7 @@ export class BlogService {
     }
     async checkBlogBySlug(slug : string) { //if blog exist with the same name turn to false 
         const blog = await this.blogRepository.findOneBy({slug})
-        return !!blog; //!! this exclamation mark turn value to boolean.
-        //if blog exist it should be true if dont exist false.
+        return blog; //!! this exclamation mark turn value to boolean.
     }
     async myBlog(){
         const {id} = this.request.user;
@@ -132,12 +131,57 @@ export class BlogService {
             blogs
         }
     }
-    async delete(id : number){
+    async checkExistBlogById(id : number){
         const blog = await this.blogRepository.findOneBy({id})
         if(!blog) throw new NotFoundException('not found any blog')
+            return blog;
+    }
+    async delete(id : number){
+        await this.checkExistBlogById(id)
         await this.blogRepository.delete({id})
         return {
             message : 'blog deleted successfully'
+        }
+    }
+    async update(id : number , blogDto : UpdateBlogDto){
+        const user = this.request.user;//user in the request.user we created it by using express name space in request.d.ts file.
+        let {title , slug , content , description , image , time_for_study , categories} = blogDto;
+        const blog = await this.checkExistBlogById(id)
+        if(!isArray(categories) &&typeof categories === 'string'){
+            categories = categories.split(',')
+        }else if(!isArray(categories)){
+            throw new BadRequestException('invalid category')
+        }
+        let slugData = null
+        if(title) {
+            slugData = title;
+            blog.title = title;
+        }
+        if(slug) slugData = slug;
+        if(slugData){
+            slug = slugData?.replace(/[ًٌٍَُِّ\.\+\-_)(*&%$^#@!~'";:?><`ء)]+/g , '')?.replace(/[\s]+/g,'-')
+            const isExist = await this.checkBlogBySlug(slug)
+            if(isExist && isExist.id !== id){
+                slug+= `-${randomId()}` 
+            }
+        }
+        if(title) blog.title = title;
+        if(title) blog.title = title;
+        if(title) blog.title = title;
+        if(title) blog.title = title;
+        blog = await this.blogRepository.save(blog);
+        for (const categoryTitle of categories){
+            let category = await this.categoryService.findOneByTitle(categoryTitle)
+            if(!category) {
+                category = await this.categoryService.insertByTitle(categoryTitle)
+            }
+            await this.blogCategoryRepository.insert({
+                blogId : blog.id ,
+                categoryId : category.id
+            })
+        }
+        return {
+            message : 'created successfully'
         }
     }
 }
