@@ -16,6 +16,7 @@ import { EntitiName } from 'src/common/enums/entity.enum';
 import { take } from 'rxjs';
 import { BlogLikesEntity } from './entities/like.entity';
 import { PublicMessage } from 'src/common/enums/message.enum';
+import { BlogBookmarkEntity } from './entities/bookmark.entity';
 
 @Injectable({scope : Scope.REQUEST})
 export class BlogService {
@@ -23,6 +24,7 @@ export class BlogService {
         @InjectRepository(BlogEntity) private blogRepository : Repository<BlogEntity> ,
         @InjectRepository(BlogCategoryEntity) private blogCategoryRepository : Repository<BlogCategoryEntity> ,
         @InjectRepository(BlogLikesEntity) private blogLikeRepository : Repository<BlogLikesEntity> ,
+        @InjectRepository(BlogBookmarkEntity) private blogBookmarkRepository : Repository<BlogBookmarkEntity> ,
         @Inject(REQUEST) private request : Request ,//LAST Request belong to express. 
         private categoryService : CategoryService
     ){}
@@ -203,6 +205,23 @@ export class BlogService {
             message = PublicMessage.DisLike
         }else {
             await this.blogLikeRepository.insert({
+                blogId , userId
+            })
+        }
+        return {
+            message
+        }
+    }
+    async bookmarkToggle(blogId : number){
+        const {id : userId} = this.request.user; //for take id of user in request.
+        const blog = await this.checkExistBlogById(blogId)
+        const isBookmarked = await this.blogBookmarkRepository.findOneBy({userId , blogId});
+        let message = PublicMessage.Bookmark 
+        if(isBookmarked) {
+            await this.blogBookmarkRepository.delete({id : isBookmarked.id});
+            message = PublicMessage.UnBookmark
+        }else {
+            await this.blogBookmarkRepository.insert({
                 blogId , userId
             })
         }
