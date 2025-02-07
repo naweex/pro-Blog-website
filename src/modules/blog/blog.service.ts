@@ -101,8 +101,11 @@ export class BlogService {
         const [blogs , count] =  await this.blogRepository.createQueryBuilder(EntitiName.Blog)
         .leftJoin('blog.categories' , 'categories')//second parameter is alias(nickname for first parameter)
         .leftJoin('categories.category' , 'category')//second parameter is alias(nickname for first parameter)
-        .addSelect(['categories.id' , 'category.title'])
+        .leftJoin('blog.author' , 'author')
+        .leftJoin('author.profile' , 'profile')
+        .addSelect(['categories.id' , 'category.title' , 'author.username' , 'author.id' , 'author.nick_name'])
         .where(where , {category , search})
+        .loadRelationCountAndMap('blog.likes' , 'blog.likes')//show and count likes.
         .orderBy('blog.id' , 'DESC')
         .skip(skip)
         .take(limit)
