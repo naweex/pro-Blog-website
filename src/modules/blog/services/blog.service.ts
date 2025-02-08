@@ -134,7 +134,7 @@ export class BlogService {
         'category.title',
         'author.username',
         'author.id',
-        'author.nick_name',
+        'profile.nick_name',
       ])
       .where(where, { category, search })
       .loadRelationCountAndMap('blog.likes', 'blog.likes') //show and count likes.
