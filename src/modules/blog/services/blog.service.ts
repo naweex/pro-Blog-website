@@ -139,8 +139,11 @@ export class BlogService {
       .where(where, { category, search })
       .loadRelationCountAndMap('blog.likes', 'blog.likes') //show and count likes.
       .loadRelationCountAndMap('blog.bookmarks', 'blog.bookmarks') //show and count bookmarks.
-      .loadRelationCountAndMap('blog.comments', 'blog.comments' , 'comments' , qb => 
-        qb.where('comments.accepted = :accepted' , {accepted : true}) //only count comments that accepted.
+      .loadRelationCountAndMap(
+        'blog.comments',
+        'blog.comments',
+        'comments',
+        (qb) => qb.where('comments.accepted = :accepted', { accepted: true }) //only count comments that accepted.
       ) //show and count comments.
       .orderBy('blog.id', 'DESC')
       .skip(skip)
@@ -277,5 +280,31 @@ export class BlogService {
     return {
       message,
     };
+  }
+  async findOne(slug: string) {
+    const blog = await this.blogRepository
+      .createQueryBuilder(EntitiName.Blog)
+      .leftJoin('blog.categories', 'categories') //second parameter is alias(nickname for first parameter)
+      .leftJoin('categories.category', 'category') //second parameter is alias(nickname for first parameter)
+      .leftJoin('blog.author', 'author')
+      .leftJoin('author.profile', 'profile')
+      .addSelect([
+        'categories.id',
+        'category.title',
+        'author.username',
+        'author.id',
+        'profile.nick_name',
+      ])
+      .where({ slug })//search blogs base on slugs.***
+      .loadRelationCountAndMap('blog.likes', 'blog.likes') //show and count likes.
+      .loadRelationCountAndMap('blog.bookmarks', 'blog.bookmarks') //show and count bookmarks.
+      .leftJoinAndSelect(//create a relation on comments and return accepted comments.**
+        'blog.comments',
+        'comments',
+        'comments.accepted = :accepted',
+        { accepted: true }
+      )
+      .getOne();
+      
   }
 }
