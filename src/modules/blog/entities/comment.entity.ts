@@ -14,7 +14,7 @@ export class BlogCommentEntity extends BaseEntity {
     blogId : number; //for which blog user commented.
     @Column()
     userId : number;//which user leave comment.
-    @Column()
+    @Column({nullable : true})//nullable means it can be empty.
     parentId : number; //id of parent cooment.                      //delete comment of delete account user.
     @ManyToOne(() => UserEntity , user =>  user.blog_comments , {onDelete : 'CASCADE'}) //user can leave a comment in many blogs.
     user : UserEntity;                                      //when blog deleted comments are deleted too.
