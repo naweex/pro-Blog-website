@@ -1,4 +1,4 @@
-import { Inject, Injectable, Scope } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { BlogEntity } from '../entities/blog.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -71,5 +71,28 @@ export class BlogCommentService {
       pagination: paginationGenerator(count, page, limit),
       comments,
     };
+  }
+  async checkExistById(id : number){
+    const comment = await this.blogCommentRepository.findOneBy({id})
+    if(!comment) throw new NotFoundException('not found comment')
+      return comment;
+  }
+  async accept(id : number) {
+    const comment = await this.checkExistById(id)
+    if(comment.accepted) throw new BadRequestException('this comment already accepted')
+    comment.accepted = true; //if comment accepted before so we show error if not we switch it to true.
+    await this.blogCommentRepository.save(comment)
+    return {
+      message : 'updated successfully'
+    }
+  }
+  async reject(id : number) {
+    const comment = await this.checkExistById(id)
+    if(!comment.accepted) throw new BadRequestException('this comment already rejected')
+    comment.accepted = false;
+    await this.blogCommentRepository.save(comment)
+    return {
+      message : 'updated successfully'
+    }
   }
 }
