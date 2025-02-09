@@ -281,7 +281,8 @@ export class BlogService {
       message,
     };
   }
-  async findOne(slug: string) {
+  async findOneBySlug(slug: string) {
+    const userId = this.request?.user?.id;
     const blog = await this.blogRepository
       .createQueryBuilder(EntitiName.Blog)
       .leftJoin('blog.categories', 'categories') //second parameter is alias(nickname for first parameter)
@@ -305,6 +306,10 @@ export class BlogService {
         { accepted: true }
       )
       .getOne();
-      
+      if(!blog) throw new NotFoundException('not found any blogs')
+      const isLiked = !!(await this.blogLikeRepository.findOneBy({userId , blogId: blog.id}))//if exist means user liked this blog.
+      const isBookmarked = !!(await this.blogBookmarkRepository.findOneBy({userId , blogId: blog.id}))//if exist means user bookmarke this blog.
+      const blogData = {isLiked , isBookmarked , ...blog}
+      return blogData;
   }
 }
