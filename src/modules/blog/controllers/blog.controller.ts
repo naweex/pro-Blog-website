@@ -47,6 +47,13 @@ export class BlogController {
   ) {
     return this.blogService.blogList(paginationDto, filterDto);
   }
+  
+  @Get('/by-slug/:slug') //recieve slug in your parameters.****
+  findOneBySlug( //this route get blogs by search slugs.***
+    @Param('slug') slug: string
+  ) {
+    return this.blogService.findOneBySlug(slug);
+  }
   @Get('/like/:id')
   likeToggle(@Param('id', ParseIntPipe) id: number) {
     return this.blogService.likeToggle(id);
