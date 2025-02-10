@@ -1,11 +1,11 @@
-import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { isJWT } from 'class-validator';
 import { NextFunction, Request } from 'express';
 import { AuthService } from 'src/modules/auth/auth.service';
-import { SKIP_AUTH } from '../decorators/skip-auth.decorators';
 //with NestMiddleware we able to use middlewares and then we should follow the structure of below.
 @Injectable()
-export class AddUserToReqWov implements NestMiddleware {
+export class AddUserToReqWov implements NestMiddleware {//add user to request without validation//user without validation can access the blog.
+                                                        //bu can not access the like and bookmark.**
   constructor(
     private authService: AuthService,
   ) {}
@@ -17,7 +17,6 @@ export class AddUserToReqWov implements NestMiddleware {
         if(user) req.user = user;
     } catch (error) {
         console.log(error);
-        
     }
     next();
   }
