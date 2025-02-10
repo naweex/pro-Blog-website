@@ -1,6 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 import { mkdirSync } from "fs";
+import { diskStorage } from "multer";
 import { extname, join } from "path";
 
 export type CallbackDestination = (error : Error , destination : string) => void
@@ -21,6 +22,12 @@ export function multerFileName(req : Request , file : Express.Multer.File , call
             const filename = `${Date.now()}${ext}`
             callback(null , filename)
         }   
+    }
+    export function multerStorage(folderName: string) {
+        return diskStorage({
+            destination: multerDestination(folderName),
+            filename: multerFileName
+        })
     }
     
 
