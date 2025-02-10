@@ -1,7 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { isJWT } from "class-validator";
 import { Request } from "express";
-import { Observable } from "rxjs";
 import { AuthService } from "../auth.service";
 import { Reflector } from "@nestjs/core";
 import { SKIP_AUTH } from "src/common/decorators/skip-auth.decorators";
