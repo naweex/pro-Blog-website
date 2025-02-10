@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  forwardRef,
   Inject,
   Injectable,
   NotFoundException,
@@ -25,6 +26,7 @@ import { EntitiName } from 'src/common/enums/entity.enum';
 import { BlogLikesEntity } from '../entities/like.entity';
 import { PublicMessage } from 'src/common/enums/message.enum';
 import { BlogBookmarkEntity } from '../entities/bookmark.entity';
+import { BlogCommentService } from './comment.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class BlogService {
@@ -38,9 +40,10 @@ export class BlogService {
     @InjectRepository(BlogBookmarkEntity)
     private blogBookmarkRepository: Repository<BlogBookmarkEntity>,
     @Inject(REQUEST) private request: Request, //LAST Request belong to express.
-    private categoryService: CategoryService
+    private categoryService: CategoryService ,
+    private blogCommentService : BlogCommentService ,
   ) {}
-
+    
   async create(blogDto: CreateBlogDto) {
     const user = this.request.user; //user in the request.user we created it by using express name space in request.d.ts file.
     let {
@@ -281,7 +284,8 @@ export class BlogService {
       message,
     };
   }
-  async findOneBySlug(slug: string) {
+  //add pagination for comments//if comments of one blogs are too many we can pagination that.
+  async findOneBySlug(slug: string , paginationDto : PaginationDto) {
     const userId = this.request?.user?.id;
     const blog = await this.blogRepository
       .createQueryBuilder(EntitiName.Blog)
@@ -299,17 +303,20 @@ export class BlogService {
       .where({ slug })//search blogs base on slugs.***
       .loadRelationCountAndMap('blog.likes', 'blog.likes') //show and count likes.
       .loadRelationCountAndMap('blog.bookmarks', 'blog.bookmarks') //show and count bookmarks.
-      .leftJoinAndSelect(//create a relation on comments and return accepted comments.**
-        'blog.comments',
-        'comments',
-        'comments.accepted = :accepted',
-        { accepted: true }
-      )
       .getOne();
       if(!blog) throw new NotFoundException('not found any blogs')
-      const isLiked = !!(await this.blogLikeRepository.findOneBy({userId , blogId: blog.id}))//if exist means user liked this blog.
-      const isBookmarked = !!(await this.blogBookmarkRepository.findOneBy({userId , blogId: blog.id}))//if exist means user bookmarke this blog.
-      const blogData = {isLiked , isBookmarked , ...blog}
-      return blogData;
+      const commentsData = await this.blogCommentService.findCommentsOfBlog(blog.id , paginationDto)
+      let isLiked = false;
+      let isBookmarked = false;
+      if(userId && !isNaN(userId) && userId > 0){
+        let isLiked = !!(await this.blogLikeRepository.findOneBy({userId , blogId: blog.id}))//if exist means user liked this blog.
+        let isBookmarked = !!(await this.blogBookmarkRepository.findOneBy({userId , blogId: blog.id}))//if exist means user bookmarke this blog.
+      }
+      return {
+        blog ,
+        isLiked ,
+        isBookmarked ,
+        commentsData
+      }
   }
 }
