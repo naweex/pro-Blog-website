@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { BlogService } from './services/blog.service';
 import { BlogController } from './controllers/blog.controller';
 import { AuthModule } from '../auth/auth.module';
@@ -12,6 +12,7 @@ import { BlogBookmarkEntity } from './entities/bookmark.entity';
 import { BlogCommentService } from './services/comment.service';
 import { BlogCommentEntity } from './entities/comment.entity';
 import { BlogCommentController } from './controllers/comment.controller';
+import { AddUserToReqWov } from 'src/common/middleware/addUserToReqWov.middleware';
 
 @Module({
   imports: [
@@ -28,4 +29,11 @@ import { BlogCommentController } from './controllers/comment.controller';
   controllers: [BlogController , BlogCommentController],
   providers: [BlogService, CategoryService , BlogCommentService],
 })
-export class BlogModule {}
+//we develope a costum middleware and we want use it in specific route.
+//in this case we create AddUserToReqWov middleware and we want to use it in '('blog/by-slug/:slug')' endpoint.
+//with class in below we use our middlware in ('blog/by-slug/:slug') route.
+export class BlogModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+      consumer.apply(AddUserToReqWov).forRoutes('blog/by-slug/:slug')
+  }
+}
