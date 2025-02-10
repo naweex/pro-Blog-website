@@ -49,10 +49,13 @@ export class BlogController {
   }
   
   @Get('/by-slug/:slug') //recieve slug in your parameters.****
+  @SkipAuth()
+  @Pagination()//this pagination only used for comments not all blog.
   findOneBySlug( //this route get blogs by search slugs.***
-    @Param('slug') slug: string
+    @Param('slug') slug: string ,
+    @Query() paginationDto : PaginationDto
   ) {
-    return this.blogService.findOneBySlug(slug);
+    return this.blogService.findOneBySlug(slug , paginationDto);
   }
   @Get('/like/:id')
   likeToggle(@Param('id', ParseIntPipe) id: number) {
