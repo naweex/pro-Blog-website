@@ -1,6 +1,13 @@
-import { BadRequestException, Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+  Scope,
+} from '@nestjs/common';
 import { BlogEntity } from '../entities/blog.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
@@ -21,7 +28,8 @@ export class BlogCommentService {
     @InjectRepository(BlogCommentEntity)
     private blogCommentRepository: Repository<BlogCommentEntity>,
     @Inject(REQUEST) private request: Request, //LAST Request belong to express.
-    private blogService: BlogService
+    @Inject(forwardRef(() => BlogService)) private blogService: BlogService //**when we use two service in each other we get dependency injection error/
+    //for solve this problem we should use forwardref.***cycle (DI)/
   ) {}
 
   async create(commentDto: CreateCommentDto) {
@@ -48,20 +56,20 @@ export class BlogCommentService {
     const { limit, page, skip } = paginationSolver(paginationDto);
     const [comments, count] = await this.blogCommentRepository.findAndCount({
       where: {},
-      relations : {
-        blog : true ,
-        user : {profile : true}
+      relations: {
+        blog: true,
+        user: { profile: true },
       },
-      select : {
-        blog : {
-          title : true
+      select: {
+        blog: {
+          title: true,
         },
-        user : {
-          username : true ,
-          profile : {
-            nick_name : true
-          }
-        }
+        user: {
+          username: true,
+          profile: {
+            nick_name: true,
+          },
+        },
       },
       skip,
       take: limit,
@@ -72,27 +80,84 @@ export class BlogCommentService {
       comments,
     };
   }
-  async checkExistById(id : number){
-    const comment = await this.blogCommentRepository.findOneBy({id})
-    if(!comment) throw new NotFoundException('not found comment')
-      return comment;
+  async checkExistById(id: number) {
+    const comment = await this.blogCommentRepository.findOneBy({ id });
+    if (!comment) throw new NotFoundException('not found comment');
+    return comment;
   }
-  async accept(id : number) {
-    const comment = await this.checkExistById(id)
-    if(comment.accepted) throw new BadRequestException('this comment already accepted')
+  async accept(id: number) {
+    const comment = await this.checkExistById(id);
+    if (comment.accepted)
+      throw new BadRequestException('this comment already accepted');
     comment.accepted = true; //if comment accepted before so we show error if not we switch it to true.
-    await this.blogCommentRepository.save(comment)
+    await this.blogCommentRepository.save(comment);
     return {
-      message : 'updated successfully'
-    }
+      message: 'updated successfully',
+    };
   }
-  async reject(id : number) {
-    const comment = await this.checkExistById(id)
-    if(!comment.accepted) throw new BadRequestException('this comment already rejected')
+  async reject(id: number) {
+    const comment = await this.checkExistById(id);
+    if (!comment.accepted)
+      throw new BadRequestException('this comment already rejected');
     comment.accepted = false;
-    await this.blogCommentRepository.save(comment)
+    await this.blogCommentRepository.save(comment);
     return {
-      message : 'updated successfully'
-    }
+      message: 'updated successfully',
+    };
+  }
+  async findCommentsOfBlog(blogId: number, paginationDto: PaginationDto) {
+    const { limit, page, skip } = paginationSolver(paginationDto);
+    const [comments, count] = await this.blogCommentRepository.findAndCount({
+      where: {
+        blogId,
+        parentId: IsNull(),
+      },
+      relations: {
+        user: { profile: true },
+        children: {//**in every websites 2 first comments showed for users,you should click and see other comments.***
+          user: { profile: true },
+          children: {
+            user: { profile: true },
+          }, //here we give children(first answer) and children of children.main comment and answer will show.
+        },
+      },
+      select: {
+        user: {
+          username: true,
+          profile: {
+            nick_name: true,
+          },
+        },
+        children: {
+          text : true ,
+          created_at : true ,
+          parentId : true ,
+          user: {
+            username: true,
+            profile: {
+              nick_name: true,
+            },
+          },
+          children: {
+            text : true ,
+            created_at : true ,
+            parentId : true , 
+            user: {
+              username: true,
+              profile: {
+                nick_name: true,
+              },
+            },
+          },
+        },
+      },
+      skip,
+      take: limit,
+      order: { id: 'DESC' },
+    });
+    return {
+      pagination: paginationGenerator(count, page, limit),
+      comments,
+    };
   }
 }
