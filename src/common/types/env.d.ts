@@ -15,7 +15,11 @@ namespace NodeJS {
         ACCESS_TOKEN_SECRET: string
         EMAIL_TOKEN_SECRET: string
         PHONE_TOKEN_SECRET: string
+        //kavenegar
+        SEND_SMS_URL: string
     }
 }
 //WE IMPROVE OUR APPLICATION SECURITY WITH SEPARATE access tokens,
 //one type code for phone verification and another for email.
+//npm i --save @nestjs/axios for using kavenegar.
+//axios for sending request for thirdparty apis like spotplayer,kavenegar,etc...
