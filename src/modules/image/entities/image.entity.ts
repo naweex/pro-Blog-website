@@ -12,7 +12,7 @@ export class ImageEntity extends BaseEntity {
   @Column()
   alt: string; //alt very usefull for SEO.***
   @Column()
-  userId: string; //id of user that upload image.
+  userId: number; //id of user that upload image.
   @CreateDateColumn()
   created_at: Date;
   @ManyToOne(() => UserEntity, user => user.images, { onDelete: 'CASCADE' }) //one user can have many images.
