@@ -1,7 +1,7 @@
 import { BaseEntity } from 'src/common/abstracts/base.entity';
 import { EntitiName } from 'src/common/enums/entity.enum';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
-import { Column, CreateDateColumn, Entity, ManyToOne } from 'typeorm';
+import { AfterLoad, Column, CreateDateColumn, Entity, ManyToOne } from 'typeorm';
 
 @Entity(EntitiName.Image)
 export class ImageEntity extends BaseEntity {
@@ -17,4 +17,9 @@ export class ImageEntity extends BaseEntity {
   created_at: Date;
   @ManyToOne(() => UserEntity, user => user.images, { onDelete: 'CASCADE' }) //one user can have many images.
   user: UserEntity;//many(images) to one(user)
+  @AfterLoad()//with afterload decorator we can do some changes after loading.
+  map(){
+    this.location = `http://localhost:3000/${this.location}` //for example here we create a link and after loading data create a link.
+  }
+
 }
