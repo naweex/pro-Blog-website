@@ -8,6 +8,7 @@ import { AuthModule } from '../auth/auth.module';
 import { CategoryModule } from '../category/category.module';
 import { BlogModule } from '../blog/blog.module';
 import { ImageModule } from '../image/image.module';
+import { CustomHttpModule } from '../http/http.module';
 
 
 
@@ -22,7 +23,8 @@ import { ImageModule } from '../image/image.module';
     UserModule ,
     CategoryModule ,
     BlogModule ,
-    ImageModule
+    ImageModule ,
+    CustomHttpModule
   ],
   controllers: [],
   providers: [],
