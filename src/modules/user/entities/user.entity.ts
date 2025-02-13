@@ -9,6 +9,7 @@ import { BlogLikesEntity } from "src/modules/blog/entities/like.entity";
 import { BlogBookmarkEntity } from "src/modules/blog/entities/bookmark.entity";
 import { BlogCommentEntity } from "src/modules/blog/entities/comment.entity";
 import { ImageEntity } from "src/modules/image/entities/image.entity";
+import { Roles } from "src/common/enums/role.enum";
 //we create a func in common/enums and define user and use it here in @entity.
 //BaseEntity is a custome function we created.
 @Entity(EntitiName.User)
@@ -19,6 +20,8 @@ export class UserEntity extends BaseEntity{//we dont use id because in baseEntit
     phone : string;
     @Column({unique : true , nullable : true})
     email : string;
+    @Column({default : Roles.User})//users by default had user role.
+    role : string;
     @Column({nullable : true})
     new_email : string;
     @Column({nullable : true})
