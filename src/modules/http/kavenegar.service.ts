@@ -9,11 +9,9 @@ constructor(private httpService : HttpService){}
     async sendVerificationSms(receptor : string , code : string) {
         const params = querystring.stringify({
         receptor ,
-        code ,
+        token : code ,
         template : SmsTemplate.Verify
     })   //example:https://api.kavenegar.com/v1/{API-KEY}/verify/lookup.json?receptor=09*********&token=852596&template=myverification
-        console.log(params);
-        
         const {SEND_SMS_URL} = process.env                       //smsURL?params=jakhfuehfd
         const result = await lastValueFrom(//lastvaluefrom take last value from http request.
             this.httpService.get(`${SEND_SMS_URL}?${params}`)
