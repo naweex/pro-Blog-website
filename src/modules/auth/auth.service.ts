@@ -16,6 +16,7 @@ import { CookieKeys } from 'src/common/enums/cookie.enum';
 import { AuthResponse } from './types/response';
 import { REQUEST } from '@nestjs/core';
 import { CookiesOptionToken } from 'src/common/utils/cookie.util';
+import { KavenegarService } from '../http/kavenegar.service';
 
 @Injectable({scope : Scope.REQUEST})//for access request we use scope
 export class AuthService {
@@ -25,6 +26,7 @@ export class AuthService {
       @InjectRepository(OtpEntity) private otpRepository:Repository<OtpEntity> ,
       @Inject(REQUEST) private request : Request ,
       private tokenService : TokenService ,
+      private kavenegarService : KavenegarService ,
       
     ){}
       async UserExistence(authDto : AuthDto , res : Response){
@@ -33,12 +35,14 @@ export class AuthService {
         switch (type) {
           case AuthType.Login:
             result = await this.login(method , username);
+            await this.sendOtp(method , username , result.code)
             return this.sendResponse(res , result)
           case AuthType.Register:
             result = await this.register(method , username);
+            await this.sendOtp(method , username , result.code)
               return this.sendResponse(res , result)  
           default:
-            throw new UnauthorizedException('')
+            throw new UnauthorizedException()
         }
       }
      async login(method : AuthMethod , username : string){
@@ -49,7 +53,8 @@ export class AuthService {
         const token = this.tokenService.createOtpToken({userId : user.id})
         return {
           token ,
-          code : otp.code 
+          code : otp.code ,
+          mobile : user.phone ,
         }
       }
      async register(method : AuthMethod , username : string){
@@ -70,13 +75,20 @@ export class AuthService {
           code : otp.code 
         }
       }
+      async sendOtp(method : AuthMethod , username : string , code : string){
+          if(method === AuthMethod.Email){
+            //send email verification and use email services like nodemail and etc...
+          }else if(method === AuthMethod.Phone){
+            await this.kavenegarService.sendVerificationSms(username , code)
+          }
+      }
       //now we set cookie//in real project we choose weird and unrecognation for cookie.
       async sendResponse(res : Response , result : AuthResponse) {
-        const {token , code} = result
+        const {token} = result
+        await 
         res.cookie(CookieKeys.OTP , token , CookiesOptionToken()) 
         res.json({
           message : 'one time password send successfully' ,
-          code 
         })
       }
       async saveOtp(userId : number , method : AuthMethod){
