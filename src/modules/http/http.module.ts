@@ -1,6 +1,5 @@
 import { HttpModule } from "@nestjs/axios";
 import { Global, Module } from "@nestjs/common";
-import { timeout } from "rxjs";
 import { KavenegarService } from "./kavenegar.service";
 @Global()//this module able to use all over the project.
 @Module({
