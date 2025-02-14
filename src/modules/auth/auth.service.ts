@@ -35,11 +35,11 @@ export class AuthService {
         switch (type) {
           case AuthType.Login:
             result = await this.login(method , username);
-            await this.sendOtp(method , username , result.code)
+            //await this.sendOtp(method , username , result.code)***//this line when our service sms like kavenegar activated we can use it.*****
             return this.sendResponse(res , result)
           case AuthType.Register:
             result = await this.register(method , username);
-            await this.sendOtp(method , username , result.code)
+            //await this.sendOtp(method , username , result.code)***//this line when our service sms like kavenegar activated we can use it.*****
               return this.sendResponse(res , result)  
           default:
             throw new UnauthorizedException()
@@ -84,11 +84,12 @@ export class AuthService {
       }
       //now we set cookie//in real project we choose weird and unrecognation for cookie.
       async sendResponse(res : Response , result : AuthResponse) {
-        const {token} = result
+        const {token , code} = result //the (code) after token when we active sms service like kavenegar we should remove it******
         await 
         res.cookie(CookieKeys.OTP , token , CookiesOptionToken()) 
         res.json({
           message : 'one time password send successfully' ,
+          code //this (code) when we active sms service like kavenegar we should remove it******
         })
       }
       async saveOtp(userId : number , method : AuthMethod){
