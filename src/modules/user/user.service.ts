@@ -3,6 +3,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  NotFoundException,
   Scope,
 } from '@nestjs/common';
 import { ProfileDto } from './dto/profile.dto';
@@ -20,6 +21,8 @@ import { TokenService } from '../auth/tokens.service';
 import { OtpEntity } from './entities/otp.entity';
 import { CookieKeys } from 'src/common/enums/cookie.enum';
 import { AuthMethod } from '../auth/enums/method.enum';
+import { FollowEntity } from './entities/follow.entity';
+import { PublicMessage } from 'src/common/enums/message.enum';
 
 @Injectable({ scope: Scope.REQUEST }) //we need requests to know which user send request to modify their profile.
 export class UserService {
@@ -29,6 +32,7 @@ export class UserService {
     @InjectRepository(ProfileEntity)
     private profileRepository: Repository<ProfileEntity>,
     @InjectRepository(OtpEntity) private otpRepository: Repository<OtpEntity>,
+    @InjectRepository(FollowEntity) private followRepository: Repository<FollowEntity>,
     @Inject(REQUEST) private request: Request,
     private authService: AuthService,
     private tokenService: TokenService
@@ -206,5 +210,21 @@ export class UserService {
     if (otp.expiresIn < now) throw new BadRequestException('code is expire!');
     if (otp.code !== code) throw new BadRequestException('please try agin!');
     return otp;
+  }
+  async followToggle(followingId : number) {
+    const {id : userId} = this.request.user; 
+    const following = await this.userRepository.findOneBy({id : followingId})
+    if(!following) throw new NotFoundException('not found any user')
+    const isFollowing = await this.followRepository.findOneBy({followingId , followerId : userId})
+    let message = PublicMessage.Follow
+    if(isFollowing) {
+      message = PublicMessage.Unfollow
+      await this.followRepository.remove(isFollowing)
+    }else{
+      await this.followRepository.insert({followingId , followerId : userId})
+    }
+    return {
+      message
+    }
   }
 }
