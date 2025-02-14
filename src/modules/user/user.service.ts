@@ -25,6 +25,7 @@ import { FollowEntity } from './entities/follow.entity';
 import { PublicMessage } from 'src/common/enums/message.enum';
 import { EntitiName } from 'src/common/enums/entity.enum';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { paginationGenerator, paginationSolver } from 'src/common/utils/pagination.util';
 
 @Injectable({ scope: Scope.REQUEST }) //we need requests to know which user send request to modify their profile.
 export class UserService {
@@ -98,11 +99,84 @@ export class UserService {
       message: 'successfully updated',
     };
   }
-  find(pagination : PaginationDto) {
-    return this.userRepository.find({
-      where: {} ,
-    });
+  async find(paginationDto: PaginationDto) {
+    const {limit, page, skip} = paginationSolver(paginationDto)
+    const [users, count] = await this.userRepository.findAndCount({
+        where: {},
+        skip,
+        take: limit
+    })
+    return {
+        pagination: paginationGenerator(count, page, limit),
+        users
+    }
+}
+async followers(paginationDto: PaginationDto) {
+  const {limit, page, skip} = paginationSolver(paginationDto)
+  const {id : userId} = this.request.user;
+  const [followers, count] = await this.followRepository.findAndCount({
+      where: {followingId : userId},//followingId of my followers it means me.take into request.user in the upper code.
+      relations : {//relation on follower and take profile of them.
+        follower : {
+          profile : true
+        }
+      },
+      select : {
+        id : true ,
+        follower : {
+          id : true ,
+          username : true ,
+          profile : {//show this information of follower.**
+            id : true ,
+            nick_name : true , 
+            bio : true ,
+            image_profile : true ,
+            backGround_profile : true
+          }
+        }
+      },
+      skip,
+      take: limit
+  })
+  return {
+      pagination: paginationGenerator(count, page, limit),
+      followers
   }
+}
+async following(paginationDto: PaginationDto) {
+  const {limit, page, skip} = paginationSolver(paginationDto)
+  const {id : userId} = this.request.user;
+  const [following, count] = await this.followRepository.findAndCount({
+      where: {
+          followerId : userId        //following means people I follow and,,i am their follower ID.my id in their followerId.
+      },
+      relations : {//relation on follower and take profile of them.
+        following : {
+          profile : true
+        }
+      },
+      select : {
+        id : true ,
+        following : {
+          id : true ,
+          username : true ,
+          profile : {//show this information of follower.**
+            id : true ,
+            nick_name : true , 
+            bio : true ,
+            image_profile : true ,
+            backGround_profile : true
+          }
+        }
+      },
+      skip,
+      take: limit
+  })
+  return {
+      pagination: paginationGenerator(count, page, limit),
+      following
+  }
+}
   profile() {
     const { id } = this.request.user;
     return this.userRepository.createQueryBuilder(EntitiName.User)
