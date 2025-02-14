@@ -3,4 +3,6 @@ export enum PublicMessage {
     DisLike = 'blog disliked successfully' ,
     Bookmark = 'blog bookmarked successfully' ,
     UnBookmark = 'blog removed from Bookmark list' ,
+    Follow = 'follow user successfully' ,
+    Unfollow = 'unfollow user successfully'
 }
