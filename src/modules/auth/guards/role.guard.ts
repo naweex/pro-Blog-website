@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 import { ROLE_KEY } from "src/common/decorators/role.decorator";
@@ -15,10 +15,14 @@ export class RoleGuard implements CanActivate {
                 context.getClass  
             ]
         );
+        //if dont specifies any role it means true and request can access.
         if(!requiredRoles || requiredRoles.length == 0) return true;
-
         const request : Request = context.switchToHttp().getRequest<Request>()
         const user = request.user;
+        const userRole = user?.role ?? Roles.User;
+        if(user.role === Roles.Admin) return true;//if this condition is true admin access all routes.**
+        if(requiredRoles.includes(userRole as Roles)) return true;
+        throw new ForbiddenException()//if user shouldnt access this error came.
     }
 }
 
