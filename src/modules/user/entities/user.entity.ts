@@ -10,6 +10,7 @@ import { BlogBookmarkEntity } from "src/modules/blog/entities/bookmark.entity";
 import { BlogCommentEntity } from "src/modules/blog/entities/comment.entity";
 import { ImageEntity } from "src/modules/image/entities/image.entity";
 import { Roles } from "src/common/enums/role.enum";
+import { FollowEntity } from "./follow.entity";
 //we create a func in common/enums and define user and use it here in @entity.
 //BaseEntity is a custome function we created.
 @Entity(EntitiName.User)
@@ -52,6 +53,10 @@ export class UserEntity extends BaseEntity{//we dont use id because in baseEntit
     blog_comments : BlogCommentEntity[] 
     @OneToMany(() => ImageEntity , image => image.user)//one user can have many images,,one(user) to many(images)
     images : ImageEntity[] 
+    @OneToMany(() => FollowEntity , follow => follow.following)
+    followers : FollowEntity[] 
+    @OneToMany(() => FollowEntity , follow => follow.follower)
+    following : FollowEntity[] 
     @CreateDateColumn()
     created_at : Date
     @UpdateDateColumn()
