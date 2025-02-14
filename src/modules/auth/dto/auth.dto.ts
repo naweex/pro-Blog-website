@@ -21,5 +21,9 @@ export class CheckOtpDto {
     @Length(5 , 5)
     code : string;
 }
+export class UserBlockDto {
+    @ApiProperty()
+    userId : number;
+}
 
 //enum means specific type or sum ,when our type is enum our variable always give specific amount.
