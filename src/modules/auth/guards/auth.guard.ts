@@ -1,9 +1,10 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { isJWT } from "class-validator";
 import { Request } from "express";
 import { AuthService } from "../auth.service";
 import { Reflector } from "@nestjs/core";
 import { SKIP_AUTH } from "src/common/decorators/skip-auth.decorators";
+import { UserStatus } from "src/modules/user/enums/status.enum";
 
 @Injectable()
 export class AuthGuard implements CanActivate {//with Reflector we can access metaData.***
@@ -15,6 +16,9 @@ export class AuthGuard implements CanActivate {//with Reflector we can access me
         const request : Request = httpContext.getRequest<Request>();
         const token = this.extractToken(request)
         request.user = await this.authService.validateAccessToken(token)
+        if(request?.user?.status === UserStatus.Block) {
+            throw new ForbiddenException('your account are blocked please contact support ;)')
+        }
         return true;
     }
     //Private methods/members are accessible only from inside the class.
