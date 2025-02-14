@@ -12,7 +12,7 @@ import { uploadedOptionalFiles } from 'src/common/decorators/upload-file.decorat
 import { Response } from 'express';
 import { CookieKeys } from 'src/common/enums/cookie.enum';
 import { CookiesOptionToken } from 'src/common/utils/cookie.util';
-import { CheckOtpDto } from '../auth/dto/auth.dto';
+import { CheckOtpDto, UserBlockDto } from '../auth/dto/auth.dto';
 import { CanAccess } from 'src/common/decorators/role.decorator';
 import { Roles } from 'src/common/enums/role.enum';
 import { Pagination } from 'src/common/decorators/pagination.decorators';
@@ -97,6 +97,12 @@ async changePhone(@Body() phoneDto : ChangePhoneDto , @Res() res : Response){
 @ApiConsumes(SwaggerConsumes.UrlEncoded , SwaggerConsumes.Json)
 async verifyPhone(@Body() otoDto : CheckOtpDto){
 return this.userService.verifyPhone(otoDto.code)
+}   
+@Post('/block')
+@CanAccess(Roles.Admin)
+@ApiConsumes(SwaggerConsumes.UrlEncoded , SwaggerConsumes.Json)
+async block(@Body() blockDto : UserBlockDto){
+return this.userService.blockToggle(blockDto)
 }   
 @Patch('/change-username')
 @ApiConsumes(SwaggerConsumes.UrlEncoded , SwaggerConsumes.Json)
