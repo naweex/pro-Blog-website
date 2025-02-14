@@ -23,6 +23,8 @@ import { CookieKeys } from 'src/common/enums/cookie.enum';
 import { AuthMethod } from '../auth/enums/method.enum';
 import { FollowEntity } from './entities/follow.entity';
 import { PublicMessage } from 'src/common/enums/message.enum';
+import { EntitiName } from 'src/common/enums/entity.enum';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Injectable({ scope: Scope.REQUEST }) //we need requests to know which user send request to modify their profile.
 export class UserService {
@@ -96,13 +98,21 @@ export class UserService {
       message: 'successfully updated',
     };
   }
-  profile() {
-    const { id } = this.request.user;
-    return this.userRepository.findOne({
-      where: { id },
-      relations: ['profile'],
+  find(pagination : PaginationDto) {
+    return this.userRepository.find({
+      where: {} ,
     });
   }
+  profile() {
+    const { id } = this.request.user;
+    return this.userRepository.createQueryBuilder(EntitiName.User)
+    .where({id})
+    .leftJoinAndSelect('user.profile' , 'profile')
+    .loadRelationCountAndMap('user.followers' , 'user.followers')//count and show number and list of followers.
+    .loadRelationCountAndMap('user.following' , 'user.following')//count and show number and list of following.
+    .getOne();
+  }
+
   //first of all we take id into user request.
   //after that we conform and check email and id with finding email.
   async changeEmail(email: string) {
