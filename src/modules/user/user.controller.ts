@@ -53,14 +53,14 @@ export class UserController {
       return this.userService.find(paginationDto)
     }
     @Get('/followers')
-    @CanAccess(Roles.Admin)
-    followers(){
-      return this.userService.find()
+    @Pagination()
+    followers(@Query() paginationDto : PaginationDto){
+      return this.userService.followers(paginationDto)
     }
     @Get('/following')
-    @CanAccess(Roles.Admin)
-    following(){
-      return this.userService.find()
+    @Pagination()
+    following(@Query() paginationDto : PaginationDto){
+      return this.userService.following(paginationDto)
     }
     @Get('/follow/:followingId')
     @ApiParam({name : 'followingId'})
