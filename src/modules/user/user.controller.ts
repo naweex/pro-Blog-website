@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseInterceptors, UploadedFiles, ParseFilePipe, UseGuards, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseInterceptors, UploadedFiles, ParseFilePipe, UseGuards, Res, ParseIntPipe } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ChangeEmailDto, ChangePhoneDto, ChangeUsernameDto, ProfileDto } from './dto/profile.dto';
 import { SwaggerConsumes } from 'src/common/enums/swagger-consumes.enum';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -41,6 +41,11 @@ export class UserController {
     @Get('/profile')
     profile(){
       return this.userService.profile()
+    }
+    @Get('/follow/:followingId')
+    @ApiParam({name : 'followingId'})
+    follow(@Param('followingId' , ParseIntPipe) followingId : number){
+      return this.userService.followToggle(followingId)
     }
     @Patch('/change-email')
     async changeEmail(@Body() emailDto : ChangeEmailDto , @Res() res : Response){
