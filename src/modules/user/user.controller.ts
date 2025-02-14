@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseInterceptors, UploadedFiles, ParseFilePipe, UseGuards, Res, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseInterceptors, UploadedFiles, ParseFilePipe, UseGuards, Res, ParseIntPipe, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBearerAuth, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ChangeEmailDto, ChangePhoneDto, ChangeUsernameDto, ProfileDto } from './dto/profile.dto';
@@ -13,6 +13,10 @@ import { Response } from 'express';
 import { CookieKeys } from 'src/common/enums/cookie.enum';
 import { CookiesOptionToken } from 'src/common/utils/cookie.util';
 import { CheckOtpDto } from '../auth/dto/auth.dto';
+import { CanAccess } from 'src/common/decorators/role.decorator';
+import { Roles } from 'src/common/enums/role.enum';
+import { Pagination } from 'src/common/decorators/pagination.decorators';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Controller('user')
 @ApiTags('User')
@@ -41,6 +45,22 @@ export class UserController {
     @Get('/profile')
     profile(){
       return this.userService.profile()
+    }
+    @Get('/list')
+    @Pagination()
+    @CanAccess(Roles.Admin)
+    find(@Query() paginationDto : PaginationDto){
+      return this.userService.find(paginationDto)
+    }
+    @Get('/followers')
+    @CanAccess(Roles.Admin)
+    followers(){
+      return this.userService.find()
+    }
+    @Get('/following')
+    @CanAccess(Roles.Admin)
+    following(){
+      return this.userService.find()
     }
     @Get('/follow/:followingId')
     @ApiParam({name : 'followingId'})
