@@ -26,6 +26,8 @@ import { PublicMessage } from 'src/common/enums/message.enum';
 import { EntitiName } from 'src/common/enums/entity.enum';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { paginationGenerator, paginationSolver } from 'src/common/utils/pagination.util';
+import { UserBlockDto } from '../auth/dto/auth.dto';
+import { UserStatus } from './enums/status.enum';
 
 @Injectable({ scope: Scope.REQUEST }) //we need requests to know which user send request to modify their profile.
 export class UserService {
@@ -306,6 +308,21 @@ async following(paginationDto: PaginationDto) {
       await this.followRepository.remove(isFollowing)
     }else{
       await this.followRepository.insert({followingId , followerId : userId})
+    }
+    return {
+      message
+    }
+  }
+  async blockToggle(blockDto : UserBlockDto) {
+    const {userId} = blockDto 
+    const user = await this.userRepository.findOneBy({id : userId})//first we search for user
+    if(!user) throw new NotFoundException('not found any user')//if not exist throw error
+    let message = PublicMessage.Blocked
+    if(user.status === UserStatus.Block) {//if user status is block
+      message = PublicMessage.Unblocked //unblocked it
+      await this.userRepository.update({id : userId} , {status : null})//and update it
+    }else{
+      await this.userRepository.update({id : userId} , {status : UserStatus.Block})//if not block it.
     }
     return {
       message
