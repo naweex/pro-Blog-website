@@ -13,10 +13,11 @@ import { JwtService } from '@nestjs/jwt';
 import { TokenService } from './tokens.service';
 import { Request, Response } from 'express';
 import { CookieKeys } from 'src/common/enums/cookie.enum';
-import { AuthResponse } from './types/response';
+import { AuthResponse, GoogleUser } from './types/response';
 import { REQUEST } from '@nestjs/core';
 import { CookiesOptionToken } from 'src/common/utils/cookie.util';
 import { KavenegarService } from '../http/kavenegar.service';
+import { randomId } from 'src/common/utils/functions.utils';
 
 @Injectable({scope : Scope.REQUEST})//for access request we use scope
 export class AuthService {
@@ -176,4 +177,30 @@ export class AuthService {
             throw new UnauthorizedException('username data is not valid')
         }
       }
+      async googleAuth(userData : GoogleUser) {
+        const {email , firstName , lastName} = userData;
+        let token: string;
+        let user = await this.userRepository.findOneBy({email})
+        if(user) {
+          token = this.tokenService.createOtpToken({ userId: user.id });
+      }else {
+          user = this.userRepository.create({
+              email,
+              verify_email: true,
+              username: email.split("@")['0'] + randomId(),//it means split email from@ and and use firstpart of email(user's name) + random id = username
+          });
+          user = await this.userRepository.save(user);
+          let profile = this.profileRepository.create({
+              userId: user.id,
+              nick_name: `${firstName} ${lastName}`,
+          });
+          profile = await this.profileRepository.save(profile);
+          user.profileId = profile.id;
+          await this.userRepository.save(user);
+          token = this.tokenService.createAccessToken({userId: user.id})
+      }
+      return {
+          token
+      }
+  }
     }
