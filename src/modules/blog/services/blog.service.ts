@@ -7,7 +7,7 @@ import {
   Scope,
 } from '@nestjs/common';
 import { BlogEntity } from '../entities/blog.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateBlogDto, FilterBlogDto, UpdateBlogDto } from '../dto/blog.dto';
 import { BlogStatus } from '../enum/status.enum';
@@ -42,6 +42,7 @@ export class BlogService {
     @Inject(REQUEST) private request: Request, //LAST Request belong to express.
     private categoryService: CategoryService ,
     private blogCommentService : BlogCommentService ,
+    private dataSource : DataSource ,
   ) {}
     
   async create(blogDto: CreateBlogDto) {
@@ -309,14 +310,28 @@ export class BlogService {
       let isLiked = false;
       let isBookmarked = false;
       if(userId && !isNaN(userId) && userId > 0){
-        let isLiked = !!(await this.blogLikeRepository.findOneBy({userId , blogId: blog.id}))//if exist means user liked this blog.
-        let isBookmarked = !!(await this.blogBookmarkRepository.findOneBy({userId , blogId: blog.id}))//if exist means user bookmarke this blog.
+        isLiked = !!(await this.blogLikeRepository.findOneBy({userId , blogId: blog.id}))//if exist means user liked this blog.
+        isBookmarked = !!(await this.blogBookmarkRepository.findOneBy({userId , blogId: blog.id}))//if exist means user bookmarke this blog.
       }
+      const queryRunner=  this.dataSource.createQueryRunner();
+      await queryRunner.connect(); //connect to querry runner
+      //suggest 3 blog in every blog randomly.**
+      const suggestBlogs = await queryRunner.query(`
+        WITH suggested_blogs AS (
+            SELECT 
+                blog.*
+            FROM blog
+            ORDER BY RANDOM()     
+            LIMIT 3
+        )
+            SELECT * FROM suggested_blogs
+    `)
       return {
         blog ,
         isLiked ,
         isBookmarked ,
-        commentsData
+        commentsData ,
+        suggestBlogs
       }
   }
 }
