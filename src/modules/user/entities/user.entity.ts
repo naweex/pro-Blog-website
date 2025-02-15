@@ -24,6 +24,8 @@ export class UserEntity extends BaseEntity{//we dont use id because in baseEntit
     @Column({default : Roles.User})//users by default had user role.
     role : string;
     @Column({nullable : true})
+    status : string;
+    @Column({nullable : true})
     new_email : string;
     @Column({nullable : true})
     new_phone : string;
