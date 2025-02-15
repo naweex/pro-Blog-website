@@ -1,8 +1,10 @@
 export enum PublicMessage {
-    Like = 'blog liked successfully' ,
-    DisLike = 'blog disliked successfully' ,
-    Bookmark = 'blog bookmarked successfully' ,
-    UnBookmark = 'blog removed from Bookmark list' ,
-    Follow = 'follow user successfully' ,
-    Unfollow = 'unfollow user successfully'
+    Like = 'blog LIKED successfully' ,
+    DisLike = 'blog DISLIKED successfully' ,
+    Bookmark = 'blog BOOKMARKED successfully' ,
+    UnBookmark = 'blog REMOVED from Bookmark list' ,
+    Follow = 'FOLLOW! user successfully' ,
+    Unfollow = 'UNFOLLOW! user successfully' ,
+    Blocked = 'account BLOCKED! successfully' ,
+    Unblocked = 'account UNBLOCKED! successfully' ,
 }
